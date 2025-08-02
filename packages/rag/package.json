@@ -24,10 +24,13 @@
   "dependencies": {
     "@cqm/shared": "^0.1.0",
     "@qdrant/js-client-rest": "^1.7.0",
-    "ollama": "^0.4.8"
+    "ollama": "^0.4.8",
+    "typescript": "^5.3.3",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.4",
+    "@types/js-yaml": "^4.0.5",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4",
     "eslint": "^8.55.0",
