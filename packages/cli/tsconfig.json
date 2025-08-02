@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "noEmit": false
+  },
+  "include": [
+    "src/**/*",
+    "../shared/src/**/*",
+    "../server/src/**/*",
+    "../rag/src/**/*"
+  ],
+  "exclude": [
+    "dist",
+    "tests",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

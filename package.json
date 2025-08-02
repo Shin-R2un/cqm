@@ -1,47 +1,33 @@
 {
-  "name": "cq-models",
-  "version": "0.0.1",
-  "description": "CQ Models! - Unified context manager for multiple AI models",
+  "name": "cqm",
+  "version": "0.1.0",
+  "description": "CQ Models! - Context provision system for multiple AI models",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "lint": "biome check .",
-    "format": "biome format --write .",
-    "clean": "turbo run clean",
-    "typecheck": "turbo run typecheck"
-  },
-  "keywords": [
-    "ai",
-    "mcp",
-    "rag",
-    "context",
-    "development",
-    "cursor",
-    "claude"
-  ],
-  "author": "CQ Models Team",
-  "license": "MIT",
-  "homepage": "https://github.com/Shin-R2un/cqm",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Shin-R2un/cqm.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Shin-R2un/cqm/issues"
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "test:watch": "turbo run test:watch",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "setup": "npm install && npm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.4.0",
+    "@types/node": "^20.10.0",
     "turbo": "^1.11.0",
-    "typescript": "^5.3.0"
-  }
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0",
+    "@vitest/ui": "^1.1.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.2.0"
 }
