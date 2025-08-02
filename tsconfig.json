@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "paths": {
+      "@cqm/core": ["./packages/core/src"],
+      "@cqm/rag-engine": ["./packages/rag-engine/src"],
+      "@cqm/cli": ["./packages/cli/src"],
+      "@cqm/plugins/*": ["./packages/plugins/*/src"],
+      "@cqm/types": ["./packages/types/src"]
+    }
+  },
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/rag-engine"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./apps/cqm-server"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}
