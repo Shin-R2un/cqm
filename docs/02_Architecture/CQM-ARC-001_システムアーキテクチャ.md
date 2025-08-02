@@ -254,7 +254,7 @@ interface PluginInfo {
 ```typescript
 class RAGEngine {
   private vectorStore: IVectorStore;
-  private embeddingProvider: IEmbeddingProvider;
+  private embeddingProvider: IOllamaEmbeddingProvider;
   private indexManager: IndexManager;
   private queryProcessor: QueryProcessor;
   
@@ -265,6 +265,27 @@ class RAGEngine {
   
   getIndexStats(): IndexStats;
   optimizeIndex(): Promise<void>;
+}
+
+// Ollama Embedding Provider Interface
+interface IOllamaEmbeddingProvider {
+  modelName: string;              // e.g., 'nomic-embed-text', 'mxbai-embed-large'
+  dimensions: number;             // Model-specific dimensions
+  maxTokens: number;              // Model-specific token limit
+  
+  async generateEmbedding(text: string): Promise<number[]>;
+  async generateBatchEmbeddings(texts: string[]): Promise<number[][]>;
+  async isModelAvailable(): Promise<boolean>;
+  async getModelInfo(): Promise<OllamaModelInfo>;
+}
+
+interface OllamaModelInfo {
+  name: string;
+  size: string;
+  format: string;
+  family: string;
+  parameter_size: string;
+  quantization_level: string;
 }
 
 interface SearchOptions {
@@ -619,7 +640,7 @@ class MemoryManager {
 interface ScalabilityLimits {
   maxFiles: number;              // 100,000 files
   maxTotalSize: string;          // "50GB"
-  maxVectorDimensions: number;   // 1536 (OpenAI embedding)
+  maxVectorDimensions: number;   // 768-4096 (Ollama embedding, model dependent)
   maxConcurrentQueries: number;  // 100
 }
 ```
@@ -825,9 +846,13 @@ services:
     image: cqm/server:latest
     environment:
       - NODE_ENV=production
+      - OLLAMA_HOST=http://ollama:11434
     volumes:
       - ./config:/app/config
       - ./data:/app/data
+    depends_on:
+      - qdrant
+      - ollama
     
   qdrant:
     image: qdrant/qdrant:latest
@@ -835,6 +860,15 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+      
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
 ```
 
 #### B. 開発環境
@@ -843,6 +877,11 @@ services:
 npm run dev           # 全サービス開発モード
 npm run dev:server    # サーバーのみ
 npm run dev:qdrant    # Qdrantのみ
+npm run dev:ollama    # Ollamaのみ
+
+# Ollamaモデル管理
+npm run ollama:pull   # 推奨embeddingモデルをダウンロード
+npm run ollama:list   # 利用可能モデル一覧
 
 # テスト実行
 npm test              # 全テスト
@@ -850,22 +889,64 @@ npm run test:unit     # ユニットテスト
 npm run test:integration  # 統合テスト
 ```
 
-## 7. 今後の拡張計画
+## 7. Ollama統合特有の考慮事項
 
-### 7.1 Phase 1: エコシステム拡張
+### 7.1 Embeddingモデル戦略
+```typescript
+// 推奨モデル選択ガイド
+interface OllamaModelStrategy {
+  // 高品質・高コスト
+  highQuality: 'mxbai-embed-large';    // 1024 dimensions
+  
+  // バランス型（推奨）
+  balanced: 'nomic-embed-text';        // 768 dimensions
+  
+  // 軽量・高速
+  lightweight: 'all-minilm';           // 384 dimensions
+}
+
+class OllamaEmbeddingManager {
+  async selectOptimalModel(projectSize: number): Promise<string> {
+    if (projectSize < 1000) return 'all-minilm';
+    if (projectSize < 10000) return 'nomic-embed-text';
+    return 'mxbai-embed-large';
+  }
+  
+  async ensureModelAvailable(modelName: string): Promise<void>;
+  async warmupModel(modelName: string): Promise<void>;
+}
+```
+
+### 7.2 パフォーマンス最適化
+- **モデル事前読み込み**: サーバー起動時にembeddingモデルをメモリに展開
+- **バッチ処理**: 複数テキストの一括embedding生成
+- **キャッシュ戦略**: 同一テキストのembedding結果をキャッシュ
+- **フォールバック**: Ollama接続失敗時のローカル検索機能
+
+### 7.3 運用考慮事項
+- **GPUメモリ管理**: embedding処理のGPU使用量監視
+- **モデル更新**: 新しいembeddingモデルへの移行戦略
+- **依存関係**: Ollamaサービスの可用性監視
+
+## 8. 今後の拡張計画
+
+### 8.1 Phase 1: エコシステム拡張
 - コミュニティプラグインフレームワーク
 - プラグインレジストリ
 - 設定GUI (Web UI)
+- 複数embeddingモデル対応
 
-### 7.2 Phase 2: 高度機能
+### 8.2 Phase 2: 高度機能
 - 分散デプロイメント対応
 - クラスタリング機能
 - リアルタイム協調編集
+- embedding品質自動最適化
 
-### 7.3 Phase 3: エンタープライズ機能
+### 8.3 Phase 3: エンタープライズ機能
 - 多テナント対応
 - 高度な認証・認可
 - 企業ポリシー統合
+- ハイブリッドembedding (Ollama + Cloud)
 
 ---
 
