@@ -11,8 +11,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint src/ --apply",
     "type-check": "tsc --noEmit"
   },
   "exports": {

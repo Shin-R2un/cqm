@@ -11,7 +11,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest",
-    "lint": "eslint src --ext .ts",
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome lint src/",
     "type-check": "tsc --noEmit",
     "start": "node dist/index.js"
   },
