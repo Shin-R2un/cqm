@@ -93,6 +93,13 @@ export class MCPServerCore {
     console.log(`   Host: ${this.options.host}:${this.options.port}`);
     console.log(`   Max Connections: ${this.options.maxConnections}`);
 
+    // RAGツールの初期化
+    try {
+      await this.toolRegistry.setupRAGTools();
+    } catch (error) {
+      console.warn('⚠️  RAG tools initialization failed, continuing without RAG features:', error);
+    }
+
     if (this.options.enableWebSocket) {
       await this.startWebSocketServer();
     }
