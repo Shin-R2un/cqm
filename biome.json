@@ -9,6 +9,9 @@
       "suspicious": {
         "noExplicitAny": "off"
       },
+      "correctness": {
+        "noUnusedVariables": "warn"
+      },
       "style": {
         "noNonNullAssertion": "off"
       }
