@@ -6,16 +6,24 @@
     "declarationMap": true,
     "sourceMap": true,
     "composite": true,
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@cqm/shared": ["../shared/src/index.ts"],
+      "@cqm/rag": ["../rag/src/index.ts"]
+    }
   },
   "include": [
-    "src/**/*",
-    "../shared/src/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "dist",
     "tests",
     "**/*.test.ts",
     "**/*.spec.ts"
+  ],
+  "references": [
+    { "path": "../shared" },
+    { "path": "../rag" }
   ]
 }

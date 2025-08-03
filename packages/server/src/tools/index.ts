@@ -6,6 +6,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, extname } from 'path';
 import { execSync } from 'child_process';
 import { ConfigManager } from '../config/index.js';
+import { RAGToolsManager } from './rag-tools.js';
 
 export interface ToolDefinition {
   name: string;
@@ -39,9 +40,15 @@ export interface ToolResult {
 
 export class ToolRegistry {
   private tools = new Map<string, ToolDefinition>();
+  private ragToolsManager: RAGToolsManager;
+  private ragToolsInitialized = false;
+  private configManager: ConfigManager;
 
-  constructor() {
+  constructor(configManager?: ConfigManager) {
+    this.configManager = configManager || new ConfigManager();
+    this.ragToolsManager = new RAGToolsManager(this.configManager);
     this.setupCoreTools();
+    // RAGツールは非同期初期化が必要なので後で呼び出し
   }
 
   register(tool: ToolDefinition): void {
@@ -73,6 +80,34 @@ export class ToolRegistry {
         isError: true
       };
     }
+  }
+
+  async setupRAGTools(): Promise<void> {
+    try {
+      // RAGツールの非同期初期化
+      console.log('🔄 Initializing RAG tools...');
+      await this.ragToolsManager.initialize();
+      
+      // RAGツールを登録
+      const ragTools = this.ragToolsManager.getTools();
+      ragTools.forEach(tool => this.register(tool));
+      
+      this.ragToolsInitialized = true;
+      console.log(`✅ Registered ${ragTools.length} RAG tools successfully`);
+    } catch (error) {
+      console.error('❌ Failed to initialize RAG tools:', error);
+      console.warn('⚠️  RAG tools will be unavailable');
+    }
+  }
+
+  async initializeRAGTools(): Promise<void> {
+    if (!this.ragToolsInitialized) {
+      await this.setupRAGTools();
+    }
+  }
+
+  isRAGReady(): Promise<boolean> {
+    return this.ragToolsManager.isReady();
   }
 
   private setupCoreTools(): void {
@@ -398,12 +433,12 @@ export class ToolRegistry {
         throw new Error(`File too large: ${stats.size} bytes (max: ${maxSize})`);
       }
       
-      const content = readFileSync(path, encoding);
+      const content = readFileSync(path, encoding as BufferEncoding);
       
       return {
         content: [{
           type: 'text',
-          text: content
+          text: content.toString()
         }, {
           type: 'resource',
           resource: {
