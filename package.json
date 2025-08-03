@@ -11,6 +11,7 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "clean": "turbo run clean && rm -rf node_modules",
@@ -23,6 +24,8 @@
     "vitest": "^1.1.0",
     "@vitest/ui": "^1.1.0",
     "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
     "prettier": "^3.1.0"
   },
   "engines": {

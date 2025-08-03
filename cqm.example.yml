@@ -1,0 +1,122 @@
+# CQM Configuration Example
+# Copy this file to cqm.yml and customize for your environment
+
+version: 1.0
+
+# Core server configuration
+core:
+  name: "CQ Models!"
+  logLevel: info
+  port: 3000
+  maxConnections: 10
+  
+# RAG (Retrieval-Augmented Generation) engine settings
+rag:
+  vectorDB:
+    type: qdrant
+    config:
+      url: http://localhost:6333
+      collection: cqm
+      # Uncomment if using authentication
+      # apiKey: ${QDRANT_API_KEY}
+      
+  embedding:
+    type: openai
+    config:
+      model: text-embedding-3-small
+      apiKey: ${OPENAI_API_KEY}
+      # Alternative: use Ollama for local embeddings
+      # type: ollama
+      # config:
+      #   model: all-minilm
+      #   baseUrl: http://localhost:11434
+
+  metadata:
+    database: sqlite
+    config:
+      path: ./cqm.db
+
+# Plugin configuration
+plugins:
+  # Filesystem monitoring plugin
+  filesystem:
+    enabled: true
+    config:
+      watchPaths: 
+        - ./src
+        - ./docs
+        - ./packages
+      ignore: 
+        - node_modules
+        - .git
+        - "*.log"
+        - dist
+        - coverage
+      indexOnStartup: true
+  
+  # GitHub integration plugin
+  github:
+    enabled: false  # Set to true and configure when ready
+    config:
+      token: ${GITHUB_TOKEN}
+      owner: ${GITHUB_OWNER}
+      repo: ${GITHUB_REPO}
+      syncInterval: 300000  # 5 minutes
+      webhookSecret: ${GITHUB_WEBHOOK_SECRET}
+  
+  # Obsidian vault plugin
+  obsidian:
+    enabled: false  # Set to true and configure when ready
+    config:
+      vaultPath: ${OBSIDIAN_VAULT_PATH}
+      watchForChanges: true
+      includeTags: true
+      includeBacklinks: true
+
+# MCP server tools configuration
+tools:
+  enabled:
+    - getProjectContext
+    - listFiles
+    - readFile
+    - searchCode
+    - searchDocuments
+    - findSimilarCode
+    # Uncomment when implemented
+    # - createIssue
+    # - updateIssueStatus
+    # - generateRequirements
+
+# Logging configuration
+logging:
+  level: info
+  file: ./logs/cqm.log
+  maxSize: 10mb
+  maxFiles: 5
+  
+# Development settings
+development:
+  hotReload: true
+  debugMode: false
+  verbose: false
+
+# Security settings
+security:
+  corsOrigins:
+    - http://localhost:3000
+    - http://localhost:8080
+  maxRequestSize: 10mb
+  rateLimiting:
+    enabled: true
+    maxRequests: 100
+    windowMs: 60000  # 1 minute
+
+# Performance tuning
+performance:
+  indexing:
+    batchSize: 100
+    maxConcurrent: 5
+  caching:
+    enabled: true
+    ttl: 300  # 5 minutes
+    maxSize: 100mb
