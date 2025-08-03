@@ -42,9 +42,11 @@ export class ToolRegistry {
   private tools = new Map<string, ToolDefinition>();
   private ragToolsManager: RAGToolsManager;
   private ragToolsInitialized = false;
+  private configManager: ConfigManager;
 
-  constructor() {
-    this.ragToolsManager = new RAGToolsManager();
+  constructor(configManager?: ConfigManager) {
+    this.configManager = configManager || new ConfigManager();
+    this.ragToolsManager = new RAGToolsManager(this.configManager);
     this.setupCoreTools();
     // RAGツールは非同期初期化が必要なので後で呼び出し
   }

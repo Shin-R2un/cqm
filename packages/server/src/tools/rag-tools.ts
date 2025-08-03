@@ -4,25 +4,32 @@
  */
 import { RAGEngine, RAGEngineOptions, RAGSearchOptions } from '@cqm/rag';
 import { ToolDefinition, ToolHandler, ToolContext, ToolResult } from './index.js';
+import { ConfigManager } from '../config/index.js';
 import { join } from 'path';
 
 export class RAGToolsManager {
   private ragEngine: RAGEngine | null = null;
   private isInitialized = false;
   private indexingInProgress = false;
+  private configManager: ConfigManager;
 
-  constructor() {
-    // RAGエンジンは遅延初期化
+  constructor(configManager: ConfigManager) {
+    this.configManager = configManager;
   }
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
+      // 設定から RAG エンジンオプションを取得
+      const ragConfig = this.configManager.getConfig().rag;
+      
+      console.log(`🚀 Initializing RAG Engine with config: ${ragConfig.provider}:${ragConfig.model}`);
+      
       // RAGエンジンの初期化
       this.ragEngine = new RAGEngine({
-        provider: 'ollama',
-        model: 'nomic-embed-text',
+        provider: ragConfig.provider as 'openai' | 'ollama',
+        model: ragConfig.model,
         vectorDbUrl: process.env.QDRANT_URL || 'http://localhost:6333',
         vectorDbApiKey: process.env.QDRANT_API_KEY,
         indexOptions: {
@@ -291,7 +298,25 @@ export class RAGToolsManager {
 
   // ハンドラー実装
   private createSemanticSearchHandler(): ToolHandler {
-    return async (params: any, context: ToolContext): Promise<ToolResult> => {
+    return async (params: any): Promise<ToolResult> => {
+      // インデックス作成中の場合の処理
+      if (this.indexingInProgress) {
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              status: 'indexing_in_progress',
+              message: 'RAGインデックス作成中のため、検索は一時的に利用できません。少々お待ちください。',
+              suggestion: 'manageRAGIndexツールでインデックス作成状況を確認できます。'
+            }, null, 2)
+          }],
+          metadata: {
+            toolName: 'semanticSearch',
+            status: 'temporarily_unavailable'
+          }
+        };
+      }
+
       if (!this.ragEngine) {
         await this.initialize();
       }
@@ -354,13 +379,27 @@ export class RAGToolsManager {
   }
 
   private createCodeSearchHandler(): ToolHandler {
-    return async (params: any, context: ToolContext): Promise<ToolResult> => {
+    return async (params: any): Promise<ToolResult> => {
+      // インデックス作成中チェック
+      if (this.indexingInProgress) {
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              status: 'indexing_in_progress',
+              message: 'RAGインデックス作成中のため、コード検索は一時的に利用できません。'
+            }, null, 2)
+          }],
+          metadata: { toolName: 'codeSearch', status: 'temporarily_unavailable' }
+        };
+      }
+
       if (!this.ragEngine) {
         await this.initialize();
       }
 
       try {
-        const { query, languages, codeTypes, limit } = params;
+        const { query, languages, limit } = params;
         
         const searchOptions: RAGSearchOptions = {
           query: `code: ${query}`, // コード検索のプレフィックス
@@ -517,7 +556,7 @@ export class RAGToolsManager {
           }
           
           // 最近のファイルとの関連度ボーナス
-          if (currentContext?.recentFiles?.some(file => result.metadata.source.includes(file))) {
+          if (currentContext?.recentFiles?.some((file: string) => result.metadata.source.includes(file))) {
             contextScore += 0.1;
           }
 
@@ -574,7 +613,7 @@ export class RAGToolsManager {
       }
 
       try {
-        const { action, filePaths, includeProgress } = params;
+        const { action, filePaths } = params;
 
         switch (action) {
           case 'initialize':

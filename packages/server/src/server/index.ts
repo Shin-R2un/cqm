@@ -77,7 +77,7 @@ export class MCPServerCore {
 
     this.configManager = new ConfigManager(this.options.configPath);
     this.connectionManager = new ConnectionManager(this.options.maxConnections);
-    this.toolRegistry = new ToolRegistry();
+    this.toolRegistry = new ToolRegistry(this.configManager);
     this.errorHandler = new ErrorHandler();
     
     this.setupCoreTools();
